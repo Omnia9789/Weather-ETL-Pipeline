@@ -16,3 +16,101 @@ Analyze — Runs 6 SQL analytical queries (aggregations, window functions, trend
 Export — Outputs results to CSV, JSON, and Parquet (via PyArrow)
 Logging — Pipeline steps are logged with timestamps for observability
 Scheduled — Can be run on a schedule via cron or Python scheduler
+
+
+Project Structure
+weather-etl-pipeline/
+│
+├── data/
+│   ├── raw/                    # Raw API responses (JSON)
+│   ├── processed/              # Cleaned intermediate data (CSV)
+│   └── exports/                # Final analytical outputs (CSV, Parquet)
+│
+├── pipeline/
+│   ├── __init__.py
+│   ├── extract.py              # API calls, raw data ingestion
+│   ├── transform.py            # Cleaning, normalization, validation
+│   └── load.py                 # SQLite loading via SQLAlchemy
+│
+├── analysis/
+│   ├── __init__.py
+│   └── queries.py              # SQL analytical queries + export logic
+│
+├── logs/
+│   └── pipeline.log            # Pipeline run logs
+│
+├── config.py                   # Cities list, API config, file paths
+├── main.py                     # Pipeline orchestrator (run this)
+├── schedule.py                 # Optional: scheduled runs
+├── requirements.txt
+└── README.md
+
+Tech Stack
+LayerToolLanguagePython 3.10+HTTP / ExtractrequestsTransformpandas, numpyLoadSQLite, SQLAlchemyParquet ExportpyarrowLoggingPython logging moduleVersion ControlGit & GitHub
+
+Getting Started
+1. Clone the repo
+bashgit clone https://github.com/YOUR_USERNAME/weather-etl-pipeline.git
+cd weather-etl-pipeline
+2. Install dependencies
+bashpip install -r requirements.txt
+3. Run the pipeline
+bashpython main.py
+4. (Optional) Schedule it
+bashpython schedule.py
+
+Pipeline Walkthrough
+Extract
+pipeline/extract.py — Calls the Open-Meteo API for a configurable list of cities. Raw JSON responses are saved to data/raw/ for reproducibility.
+Transform
+pipeline/transform.py — Applies the following transformations:
+
+Drops rows with null temperature or wind speed values
+Deduplicates on (city, timestamp) primary key
+Normalizes column names and casts data types
+Flags anomalous readings (e.g., temperatures outside physical range)
+
+Load
+pipeline/load.py — Creates/updates a weather table in SQLite using SQLAlchemy. Uses upsert logic to avoid duplicates on re-runs.
+Analyze
+analysis/queries.py — Runs 6 analytical SQL queries:
+
+Average daily temperature per city
+Hottest and coldest hours per city
+City with highest wind speed on each day
+Month-over-month temperature trend
+Hourly temperature ranking within each city (window function)
+Days with temperature variance > threshold (anomaly detection)
+
+Results are exported to data/exports/ as both .csv and .parquet.
+
+Sample Output
+[2026-04-14 10:00:01] INFO  — Starting ETL pipeline
+[2026-04-14 10:00:02] INFO  — Extracted 1,440 records for 5 cities
+[2026-04-14 10:00:03] INFO  — Dropped 12 null rows, 3 duplicates
+[2026-04-14 10:00:04] INFO  — Loaded 1,425 records into SQLite
+[2026-04-14 10:00:05] INFO  — Exported 6 query results to data/exports/
+[2026-04-14 10:00:05] INFO  — Pipeline complete in 4.2s
+
+Key Findings
+
+(Update this section after your first run with real insights)
+
+
+Cairo showed the highest average daytime temperature across all cities at 38.4°C
+Wind speed anomalies were detected on 3 occasions, all in coastal cities
+Temperature variance was highest between 06:00–09:00 local time across all cities
+
+
+Requirements
+requests
+pandas
+numpy
+sqlalchemy
+pyarrow
+schedule
+
+Author
+Omnia Ali Mohamed Ali
+AI & Data Engineering | Cairo University, CS (AI Major)
+GitHub · LinkedIn · Portfolio
